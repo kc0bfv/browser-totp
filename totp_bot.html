@@ -1,0 +1,68 @@
+</script>
+<script>
+    function get_totp_len() {
+        let radios = document.getElementsByName("totplen");
+        let seld = Array.prototype.slice.call(radios).reduce( function(prev, cur) {
+                if( cur.checked ) { return cur; } else { return prev; };
+            });
+
+        return Number(seld.value);
+    }
+    function update_expiry_time() {
+        let insecs = document.getElementById("insecs").value;
+        let insecs_out = document.getElementById("insecsreadout");
+        insecs_out.value = insecs;
+    }
+    function get_remaining_time(expiry_time) {
+        let cur_time = new Date().getTime() / 1000.0;
+        let periods = Math.floor(Math.round(cur_time) / expiry_time);
+        let next_period_start = (periods + 1) * expiry_time;
+        return Math.round( next_period_start - cur_time);
+    }
+    function gen_totp() {
+        let outtotp = document.getElementById("outtotp");
+        let outtime = document.getElementById("remtime");
+        let inkey = document.getElementById("inkey").value;
+        let insecs = document.getElementById("insecs").value;
+        let inlen = get_totp_len();
+
+        let totp = new jsOTP.totp(insecs, inlen);
+        var code = "INVALID KEY";
+        try {
+            code = totp.getOtp(inkey);
+        } catch ( e ) {
+        }
+
+        let remtime = get_remaining_time(insecs);
+
+        if( outtotp.innerHTML != code ) {
+            outtotp.innerHTML = code;
+        }
+        if( outtime.innerHTML != remtime ) {
+            outtime.innerHTML = remtime;
+        }
+    }
+
+    function after_load() {
+        window.setInterval(gen_totp, 100);
+        update_expiry_time();
+    }
+</script>
+</head>
+<body onload="after_load()">
+    <form>
+        <div><label>TOTP Key: <input type="text" id="inkey"></label></div>
+        <div><label>TOTP Expiry Time:
+            <input type="range" id="insecs" min="10" max="240" value="30" step="10" oninput="update_expiry_time();"></label>
+            <input type="text" disabled="true" id="insecsreadout">
+        </div>
+        <div><label>TOTP Length:</label>
+            <label>6 <input type="radio" id="totplen_6" name="totplen" value="6" checked></label>
+            <label>8 <input type="radio" id="totplen_8" name="totplen" value="8"></label>
+        </div>
+        <div><label>Hash: SHA-1</label></div>
+        <div>TOTP Value: <span id="outtotp"></span></div>
+        <div>Remaining Time: <span id="remtime"></span></div>
+    </form>
+</body>
+</html>

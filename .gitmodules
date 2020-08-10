@@ -1,0 +1,3 @@
+[submodule "JS-OTP"]
+	path = JS-OTP
+	url = https://github.com/jiangts/JS-OTP.git
